@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BiSearch, BiBell } from "react-icons/bi";
-import profilePic from "../assets/Profile.png";
+import profilePic from "../assets/profile.png";
 import Back from "../assets/back.png";
 
 export default function Header() {
