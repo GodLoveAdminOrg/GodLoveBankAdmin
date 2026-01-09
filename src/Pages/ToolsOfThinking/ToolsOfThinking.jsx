@@ -17,10 +17,10 @@ export default function ToolsOfThinking() {
   
   // Only these cards should open a table
   const tablePages = {
-    2: "No. of Request",
-    5: "Subject",
-    4: "Goal Name",
-    6: "Goal Name",
+    36: "No. of Request",
+    37: "Subject",
+    39: "Goal Name",
+    41: "Goal Name",
   };
 
    useEffect(() => {
@@ -83,7 +83,7 @@ export default function ToolsOfThinking() {
               onUpload={updateAdminToolOfThinkingAudio}          // API call
               onUpdated={fetchTools}                              // refresh after upload
 
-              onClick={() => handleCardClick(index + 1)}
+              onClick={() => handleCardClick(tool.id)}
               onDelete={() => console.log(`Delete clicked for tool ${tool.id}`)}
             />
           ))}
