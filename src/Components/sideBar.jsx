@@ -83,7 +83,7 @@ export default function SideBar() {
     icon: <BiBook />,
     subItems: [
       { name: "Groups", path: "groups", pro: false },
-      { name: "Base's Description", path: "base-description", pro: false }
+      // { name: "Base's Description", path: "base-description", pro: false }
     ],
   }
 
@@ -137,11 +137,11 @@ export default function SideBar() {
               <BiMessage /> Chat
             </NavLink>
           </li>
-          <li>
+          {/* <li>
             <NavLink to="/subadminpage" className="nav-link">
               <BiUser /> Role Management
             </NavLink>
-          </li>
+          </li> */}
           {/* <li>
             <NavLink to="/home/videos" className="nav-link">
               <BiCreditCard /> Videos

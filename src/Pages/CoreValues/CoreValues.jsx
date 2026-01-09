@@ -97,12 +97,12 @@ export default function CoreValues() {
 
   return (
     <Layout>
-      <div className="d-flex justify-content-center mt-5">
+      {/* <div className="d-flex justify-content-center mt-5">
         <TaskPieChart
           totalUsers={totalUsers}
           completedUsers={completedUsers}
         />
-      </div>
+      </div> */}
 
       <div className="container py-4">
         {loading && <p>Loading core values...</p>}

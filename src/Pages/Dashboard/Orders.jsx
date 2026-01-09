@@ -1,5 +1,5 @@
 import Layout from "../../Components/Layout";
-import MonthlySalesChart from "../../Components/MonthlySalesChart";
+// import MonthlySalesChart from "../../Components/MonthlySalesChart";
 import OrdersTable from "../../Components/OrderTable";
 import { getAdminOrders } from "../../Services/orderApi";
 import { useEffect, useState } from "react";
@@ -94,9 +94,9 @@ const fetchOrdersForDashboard = async () => {
         </div>
       </div>
 
-      <div className="mt-4 container-fluid py-3 px-4" style={{ background: "#F7F8FA" }}>
+      {/* <div className="mt-4 container-fluid py-3 px-4" style={{ background: "#F7F8FA" }}>
         <MonthlySalesChart />
-      </div>
+      </div> */}
       {/* --- Orders Table Goes Here --- */}
         <div className="mt-4 container-fluid " style={{ background: "#F7F8FA" }}>
           <OrdersTable orders={orders} />

@@ -62,9 +62,9 @@ const EmotionDropdown = () => {
 
   return (
     <div className="position-relative d-inline-block">
-      <Button variant="primary" onClick={() => setOpen(!open)}>
+      {/* <Button variant="primary" onClick={() => setOpen(!open)}>
         Create Group +  
-      </Button>
+      </Button> */}
 
       {open && (
         <ul

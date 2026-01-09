@@ -113,11 +113,14 @@ const Groups = () => {
     setShowModal(true);
   };
 
-  const handleInputChange = (qIndex, value) => {
-    const updatedGroup = { ...selectedGroup };
-    updatedGroup.questions[qIndex].q = value;
-    setSelectedGroup(updatedGroup);
+  const handleInputChange = (qIndex, field, value) => {
+  const updatedGroup = { ...selectedGroup };
+  updatedGroup.questions[qIndex] = {
+    ...updatedGroup.questions[qIndex],
+    [field]: value,
   };
+  setSelectedGroup(updatedGroup);
+};
 
   const handleSave = async () => {
   setSaving(true);
@@ -158,7 +161,7 @@ const Groups = () => {
               <tr className="coloumn">
                 <th scope="col">Group</th>
                 <th scope="col">Question</th>
-                <th scope="col">Answer</th>
+                <th scope="col">Category</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -174,7 +177,7 @@ const Groups = () => {
                     <td className="align-middle descriptionCol" style={{ fontSize: 13 }}>
                       {item.q}
                     </td>
-                    <td className="align-middle">{item.a || "-"}</td>
+                    <td className="align-middle">{item.category || "-"}</td>
                     {qIndex === 0 && (
                       <td className="align-middle" rowSpan={group.questions.length}>
                         <button
@@ -219,15 +222,14 @@ const Groups = () => {
                         type="text"
                         className="form-control mb-1"
                         value={q.q}
-                        onChange={(e) => handleInputChange(idx, e.target.value)}
+                        onChange={(e) => handleInputChange(idx, "q", e.target.value)}
                       />
-                      {/* <input
+                      <input
                         type="text"
                         className="form-control"
-                        value={q.a}
-                        onChange={(e) => handleInputChange(idx, "a", e.target.value)}
-                        disabled // answer is not updated via API
-                      /> */}
+                        value={q.category}
+                        onChange={(e) => handleInputChange(idx, "category", e.target.value)}
+                      />
                     </div>
                   ))}
                 </div>
