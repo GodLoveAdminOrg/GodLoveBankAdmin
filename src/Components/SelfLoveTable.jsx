@@ -46,7 +46,7 @@ const SelfLoveTable = () => {
         <tr>
           <th className=" fw-bold" style={{width: "40%"}}>Old Self-Love</th>
           <th className=" fw-bold" style={{width: "40%"}}>New Self-Love</th>
-          <th className="text-center  fw-bold" style={{width: "15%"}}>Actions</th>
+          <th className="text-center fw-bold" style={{width: "15%"}}>Actions</th>
         </tr>
       </thead>
 

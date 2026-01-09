@@ -1,32 +1,20 @@
 import Layout from "../../Components/Layout";
 import CoreValuesCard from "../../Components/CoreValueCard";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+
+import { getAdminToolsOfThinking, updateAdminToolOfThinkingAudio } from "../../Services/toolofthinkingApi";
 
 
-export default function ToolsOfThinking({ title }) {
+
+
+export default function ToolsOfThinking() {
     const navigate = useNavigate();
+    const [tools, setTools] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
 
-  const coreValues = [
-    {title:"THE DAILY PRAYER MACRO STRATEGY", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE A-M-E-N PRINCIPLE", color: "rgba(179, 179, 179, 1)"},
-    {title:"OPENING AND CLOSING SPIRIT", color: "rgba(179, 179, 179, 1)"},
-    {title:"LOVE DEPOSIT  COMPOUNDING INTEREST REPS", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE HOLY SPIRIT AAA CARDS", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE DAILY PURPOSE PLANNER AND JOURNAL", color: "rgba(179, 179, 179, 1)"},
-    {title:"LOVE DEPOSITS AND WITHDRAWALS", color: "rgba(179, 179, 179, 1)"},
-    {title:"GOD'S PURPOSE TOOLBOX", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE SEVEN LAWS OF SOWING REAPING FAITH", color: "rgba(179, 179, 179, 1)"},
-    {title:"GLB RATIONALE: THREEFOLD SPIRITUAL BEING ", color: "rgba(179, 179, 179, 1)"},
-    {title:"PURPOSE INSTRUMENTAL GOALS", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE FIVE STATIONS OF THE GIFT JOURNEY", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE FIVE CARING DEEDS OF THE BODY", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE 100% PYRAMID!", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE THERMOSTAT OF YOUR SOUL!", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE FIVE STAGES OF SPIRITUAL GROWTH", color: "rgba(179, 179, 179, 1)"},
-    {title:"THE GOLDEN RULE OF EFFECTIVE COMMUNICATION", color: "rgba(179, 179, 179, 1)"},
-    {title:"GOD'S LOVE BANK CURRICULUM", color: "rgba(179, 179, 179, 1)"},
-   
-  ];
+  
   // Only these cards should open a table
   const tablePages = {
     2: "No. of Request",
@@ -35,11 +23,27 @@ export default function ToolsOfThinking({ title }) {
     6: "Goal Name",
   };
 
+   useEffect(() => {
+    fetchTools();
+  }, []);
+
+  const fetchTools = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminToolsOfThinking();
+      setTools(res.data.data || []);
+    } catch (err) {
+      console.error("Tools fetch failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCardClick = (id) => {
     if (tablePages[id]) {
       navigate(`/tools-of-thinking/${id}?title=${encodeURIComponent(tablePages[id])}`);
     }
-  }
+  };
 
   return (
     <Layout>
@@ -51,11 +55,10 @@ export default function ToolsOfThinking({ title }) {
       <h2 className="fw-bold text-danger fs-2">Tools of Thinking</h2>
     </div> 
       <div className="container py-0 " >
-           
-        
+      {loading && <p>Loading tools...</p>}
 
         {/* Stack layout */}
-        <div className="row">
+        {/* <div className="row">
           {coreValues.map((value, index) => (
             <CoreValuesCard
               key={index}
@@ -64,6 +67,24 @@ export default function ToolsOfThinking({ title }) {
               onDelete={() => console.log(`Delete clicked for card ${index + 1}`)}
               onClick={() => handleCardClick(index + 1)}
 
+            />
+          ))}
+        </div> */}
+        <div className="row">
+          {tools.map((tool, index) => (
+            <CoreValuesCard
+              key={tool.id}
+              coreValue={tool}
+              title={`${index + 1}- ${tool.name}`}
+              color="rgba(179,179,179,1)"
+              audioUrl={tool.audioUrl}
+
+              enableAudioUpload={!tool.audioUrl}                  // disable upload if audio exists
+              onUpload={updateAdminToolOfThinkingAudio}          // API call
+              onUpdated={fetchTools}                              // refresh after upload
+
+              onClick={() => handleCardClick(index + 1)}
+              onDelete={() => console.log(`Delete clicked for tool ${tool.id}`)}
             />
           ))}
         </div>

@@ -13,6 +13,8 @@ import ToolsDetailPage from "../Pages/ToolsOfThinking/ToolsDetailPage";
 import ChatPage from "../Pages/Chat/ChatPage";
 import UserTable from "../Pages/Product/Product";
 import SubAdminPage from "../Pages/SubAdminPage/SubAdminPage";
+// import JobDetails from "./Pages/JobDetails/JobDetails"; // ✅ import this
+
 
 
 export default function AppRoutes() {
@@ -24,6 +26,7 @@ export default function AppRoutes() {
       <Route path="/product" element={<UserTable />} />
       <Route path="/orders" element={<Ecommerce />} />
       <Route path='/groups' element={<Groups/>}/>
+      {/* <Route path="/JobDetails" element={<JobDetails />} />  */}
       <Route path="/emotion/:emotion" element={<EmotionPage />} />
       <Route path="/base-description" element={<BaseDescriptionPage />} />
       <Route path="/media" element={<MediaControl />} />

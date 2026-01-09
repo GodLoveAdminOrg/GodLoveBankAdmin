@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ChatListItem from "./ChatListItem";
-import { getAdminChats } from "../Services/chatApi";
+import { getAdminChats } from "../Services/chatApi";  
 // const API_BASE = "http://18.204.175.233:3001";
 
 export default function ChatSidebar({ selectedUser, setSelectedUser }) {
@@ -45,8 +45,17 @@ useEffect(() => {
                 user={{
                   id: chat.id, // chatId
                   name: `${chat.user?.firstName || ""} ${chat.user?.lastName || ""}`,
-                  last: chat.lastMessage || "No messages yet",
-                  time: chat.lastMessageAt
+                  // last: chat.lastMessage || "No messages yet",
+                  last: (() => {
+                    const msg = chat.lastMessage || "";
+                    // Simple check for image file extensions
+                    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+                    const isImage = imageExtensions.some((ext) => msg.toLowerCase().includes(ext));
+
+                    if (isImage) return "📷 Photo"; // or "Image"
+                    return msg || "No messages yet";
+                  })(),
+                                    time: chat.lastMessageAt
                     ? new Date(chat.lastMessageAt).toLocaleTimeString()
                     : "",
                   // avatar: chat.user?.image

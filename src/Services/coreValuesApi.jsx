@@ -12,6 +12,7 @@ export const updateAdminCoreValue = (id, payload) => {
   return API.put(`/admin/core-values/${id}`, payload, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "multipart/form-data",
     },
   });
 };
