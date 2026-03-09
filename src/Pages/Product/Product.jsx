@@ -267,7 +267,7 @@ useEffect(() => {
           fetchProducts(); // refresh list
           toast.success("Video deleted successfully");
         } catch (error) {
-          set(previousList); // revert back
+          // set(previousList); // revert back
           toast.error("Failed to delete Product");
           console.error("DELETE ERROR FULL:", error.response?.data);
           console.error("STATUS:", error.response?.status);

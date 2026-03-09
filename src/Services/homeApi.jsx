@@ -1,8 +1,8 @@
 import API from "./api";
 
 // GET users list (Admin)
-export const getAdminUsers = (params = {}) => {
-  return API.get("/admin/users", { params });
+export const getAdminUsers = (page = 1, limit = 10) => {
+  return API.get(`/admin/users?page=${page}&limit=${limit}`);
 };
 
 // GET users questions

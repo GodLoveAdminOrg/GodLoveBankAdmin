@@ -9,19 +9,20 @@
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState(null);
-    const USERS_PER_PAGE = 5;
+    const USERS_PER_PAGE = 10;
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (page = 1) => {
       try {
         setLoading(true);
-        const res = await getAdminUsers();
+        const res = await getAdminUsers(page, USERS_PER_PAGE);
         const fetchedUsers = res.data.data.users || []; // ✅ declare variable
         setUsers(res.data.data.users || []);
+        setTotalPages(res.data.data.totalPages);
+        setCurrentPage(res.data.data.page);
         // 🔥 Debug logs
     console.log("Users fetched:", fetchedUsers);
-    console.log("Total pages:", Math.ceil(fetchedUsers.length / USERS_PER_PAGE));
-            setCurrentPage(1); // 👈 YAHAN lagana hai (page reset)
       } catch (err) {
         console.error("Users fetch failed", err);
       } finally {
@@ -30,15 +31,13 @@
     };
 
     useEffect(() => {
-      fetchUsers();
-    }, []);
+      fetchUsers(currentPage);
 
-    const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
+    }, [currentPage]);
 
-const paginatedUsers = users.slice(
-  (currentPage - 1) * USERS_PER_PAGE,
-  currentPage * USERS_PER_PAGE
-);
+
+    const paginatedUsers = users;
+
 
     const totalUsers = users.length;
     const activeUsers = users.filter(u => u.status === 1).length;
@@ -227,44 +226,37 @@ const paginatedUsers = users.slice(
 
         {/* Prev */}
         <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-          <button
-            className="page-link"
-            onClick={() => setCurrentPage(prev => prev - 1)}
-          >
-            Prev
-          </button>
-        </li>
+  <button
+    className="page-link"
+    onClick={() => setCurrentPage(prev => prev - 1)}
+  >
+    Prev
+  </button>
+</li>
 
-        {/* Page Numbers */}
-        {[...Array(totalPages)].map((_, index) => (
-          <li
-            key={index}
-            className={`page-item ${
-              currentPage === index + 1 ? "active" : ""
-            }`}
-          >
-            <button
-              className="page-link"
-              onClick={() => setCurrentPage(index + 1)}
-            >
-              {index + 1}
-            </button>
-          </li>
-        ))}
+{[...Array(totalPages)].map((_, index) => (
+  <li
+    key={index}
+    className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
+  >
+    <button
+      className="page-link"
+      onClick={() => setCurrentPage(index + 1)}
+    >
+      {index + 1}
+    </button>
+  </li>
+))}
 
-        {/* Next */}
-        <li
-          className={`page-item ${
-            currentPage === totalPages ? "disabled" : ""
-          }`}
-        >
-          <button
-            className="page-link"
-            onClick={() => setCurrentPage(prev => prev + 1)}
-          >
-            Next
-          </button>
-        </li>
+<li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+  <button
+    className="page-link"
+    onClick={() => setCurrentPage(prev => prev + 1)}
+  >
+    Next
+  </button>
+</li>
+
 
       </ul>
     </nav>

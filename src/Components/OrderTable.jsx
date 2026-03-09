@@ -21,12 +21,12 @@ const OrdersTable = () => {
   // fetchOrders();
   //   }, []);
     useEffect(() => {
-    fetchOrders(currentPage);
-  }, [currentPage]);
+    fetchOrders(currentPage, searchTerm);
+  }, [currentPage, searchTerm]);
 
-  const fetchOrders = async (page) => {
+  const fetchOrders = async (page, search = "") => {
   try {
-    const res = await getAdminOrders(page, rowsPerPage);
+    const res = await getAdminOrders(page, rowsPerPage, search);
         // 👇 API se data
     const apiOrders = res.data.data;
 
@@ -55,7 +55,7 @@ const OrdersTable = () => {
     }));
 
     setOrders(formattedOrders);
-    setTotalPages(res.data.totalPages || 1);
+    setTotalPages(res.data.pagination?.totalPages || 1);
   } catch (error) {
     console.error("Orders fetch failed", error);
   }
@@ -146,7 +146,7 @@ const formatStatus = (status) => {
         <input
           type="text"
           className="form-control"
-          placeholder="Search by order number, customer, city, or status"
+          placeholder="Search by order number or order ID"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
