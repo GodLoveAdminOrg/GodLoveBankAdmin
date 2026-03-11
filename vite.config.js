@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    allowedHosts: ['god-love-admin.deployment.cc'],
     historyApiFallback: true,
     proxy: {
       '/admin-auth': 'http://18.204.175.233:3001',
