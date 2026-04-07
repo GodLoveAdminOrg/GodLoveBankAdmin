@@ -15,7 +15,7 @@ export default function Layout({ children }) {
       {/* Main Content with Sticky Header */}
       <div
         className="flex-grow-1 d-flex flex-column"
-        style={{ marginLeft: "-70px" ,overflowX: "hidden"}}
+        style={{ marginLeft: "-70px", overflowX: "hidden" }}
       >
         <Header />
 
@@ -26,7 +26,6 @@ export default function Layout({ children }) {
 
 
       {/* LOGOUT MODAL  */}
-
       <div
         className="modal fade"
         id="logoutModal"
@@ -37,8 +36,8 @@ export default function Layout({ children }) {
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content logout-modal">
             <div className="modal-body text-center p-4">
-              <img src={logIcon} 
-              style={{width:"120px", height: "120px"}}
+              <img src={logIcon}
+                style={{ width: "120px", height: "120px" }}
               />
               <h5 className="mb-3 fw-bold">Logout</h5>
               <p className="text-muted mb-4">

@@ -14,3 +14,8 @@ export const getAdminUsersQuestions = () => {
 export const updateAdminUserQuestion = (id, payload) => {
   return API.patch(`/admin/users/questions/${id}`, payload);
 };
+
+
+export const deleteUser = (id) => {
+  return API.delete(`/admin/users/${id}`);
+};

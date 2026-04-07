@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mantine/core": "^7.17.8",
+    "@mantine/hooks": "^7.17.8",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "chart.js": "^4.3.0",

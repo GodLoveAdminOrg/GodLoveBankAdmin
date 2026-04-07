@@ -8,10 +8,10 @@ export default defineConfig({
     allowedHosts: ['god-love-admin.deployment.cc'],
     historyApiFallback: true,
     proxy: {
-      // '/admin-auth': 'http://18.204.175.233:3001',
-      // '/admin': 'http://18.204.175.233:3001',
-      '/admin-auth': 'https://god-love-api.deployment.cc',
-      '/admin': 'https://god-love-api.deployment.cc',
+      '/admin-auth': 'http://18.204.175.233:3001',
+      '/admin': 'http://18.204.175.233:3001',
+      // '/admin-auth': 'https://god-love-api.deployment.cc',
+      // '/admin': 'https://god-love-api.deployment.cc',
     }
   },
 })

@@ -25,7 +25,7 @@ export default function Header() {
     window.addEventListener("popstate", onPopState);
     window.history.back();
   };
-  
+
 
   return (
     <header className="header  mb-3 d-flex justify-content-between">
@@ -49,14 +49,14 @@ export default function Header() {
             <BiSearch className="searchIcon" />
             <input type="text" placeholder="Search anything..." className="searchInput" />
           </div>
-          
+
         </div>
 
         {/* RIGHT: Bell + Profile */}
-        <div className="d-flex align-items-center gap-3">
-          <div className="bellContainer">
+        <div className="d-flex align-items-center">
+          {/* <div className="bellContainer">
             <BiBell className="bellIcon" />
-          </div>
+          </div> */}
           <img
             src={profilePic}
             alt="Profile"
