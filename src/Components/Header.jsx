@@ -51,20 +51,6 @@ export default function Header() {
           </div>
 
         </div>
-
-        {/* RIGHT: Bell + Profile */}
-        <div className="d-flex align-items-center">
-          {/* <div className="bellContainer">
-            <BiBell className="bellIcon" />
-          </div> */}
-          <img
-            src={profilePic}
-            alt="Profile"
-            width={50}
-            height={50}
-            className="profilePic"
-          />
-        </div>
       </div>
     </header>
   );

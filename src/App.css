@@ -46,21 +46,24 @@
   padding: 0;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   font-family: 'Geist', sans-serif;
 }
+
 /* Global CSS */
 .bluePanel {
   height: 100vh;
   width: 40%;
   /* background-color: #FFEEEE; */
-    background-color: whitesmoke;
+  background-color: whitesmoke;
 
   display: flex;
   justify-content: center;
-  align-items: center;  
+  align-items: center;
 }
 
 .formPanel {
@@ -73,11 +76,12 @@ html, body, #root {
   justify-content: center;
 }
 
-.headFont{
+.headFont {
   font-family: 'Geist', sans-serif;
   color: white !important;
-  
+
 }
+
 .logo {
   width: 300px;
   height: auto;
@@ -112,12 +116,13 @@ html, body, #root {
 
 .form input:focus {
   border: 1px solid #870000;
-  box-shadow: 0 2px 10px #ad0000; 
+  box-shadow: 0 2px 10px #ad0000;
 }
 
 .form button:hover {
   background-color: #740202;
 }
+
 .form button {
   padding: 11px;
   background-color: #870000;
@@ -133,6 +138,7 @@ html, body, #root {
   margin-top: 20px;
 
 }
+
 .passwordWrapper {
   position: relative;
   display: flex;
@@ -151,6 +157,7 @@ html, body, #root {
   color: #0077b6;
   font-size: 14px;
 }
+
 .container {
   display: flex;
   height: 100vh;
@@ -159,10 +166,11 @@ html, body, #root {
 
 /* Booking page */
 
-.bookingtable{
+.bookingtable {
   max-width: 100%;
   margin-top: 0 !important;
 }
+
 .table {
   width: 100%;
   min-width: 600px;
@@ -179,16 +187,20 @@ td.descriptionCol {
   max-width: 250px;
   vertical-align: middle;
 }
+
 td.descriptionCol {
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
-.table td{
+
+.table td {
   vertical-align: middle;
 }
-.buttonstyle{
+
+.buttonstyle {
   font-size: larger;
 }
+
 .table th {
   font-weight: normal;
   font-size: 16px;
@@ -222,7 +234,8 @@ td.descriptionCol {
 
 .searchInput {
   height: 40px;
-  padding-left: 45px; /* space for icon */
+  padding-left: 45px;
+  /* space for icon */
   width: 100%;
   border: 1px solid #ddd;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.09);
@@ -231,8 +244,8 @@ td.descriptionCol {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background-color:white;
-  
+  background-color: white;
+
 }
 
 .rightContainer {
@@ -267,10 +280,12 @@ td.descriptionCol {
   object-fit: cover;
   cursor: pointer;
 }
+
 .backButton {
   cursor: pointer;
   transition: opacity 0.2s ease-in-out;
 }
+
 .backButton:hover {
   opacity: 0.7;
 }
@@ -328,16 +343,19 @@ td.descriptionCol {
   padding: 12px 20px;
   transition: background 0.2s;
   font-family: 'Plus Jakarta Sans', sans-serif !important;
-  
+
 }
-.bg-logout-color{
+
+.bg-logout-color {
   background-color: #330D0C !important;
 }
+
 .nav a:hover {
   background: #FFEEEE;
   border-radius: 4px;
-  
+
 }
+
 .nav-link.active {
   background-color: #870000 !important;
   border-radius: 4px;
@@ -434,17 +452,19 @@ td.descriptionCol {
   align-items: center;
   justify-content: center;
 }
+
 .description-clamp {
-      display: -webkit-box;
-      -webkit-line-clamp: 2; /* Show only 2 lines */
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  /* Show only 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
- /* Chat CSS */
+/* Chat CSS */
 
- .app-one {
+.app-one {
   height: 100vh;
   background: #f9f9f9;
 }
