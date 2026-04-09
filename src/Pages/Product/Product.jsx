@@ -8,6 +8,8 @@ import { createAdminProduct } from "../../Services/productApi";
 import { updateAdminProduct } from "../../Services/productApi";
 import { toast } from "react-toastify";
 import { deleteProductVideo } from "../../Services/productApi";
+import { Switch } from "@mantine/core";
+import { CheckIcon, XIcon } from "@phosphor-icons/react";
 
 
 const ProductCard = ({ item, onDelete, onEdit, deletingId }) => {
@@ -57,7 +59,7 @@ const ProductCard = ({ item, onDelete, onEdit, deletingId }) => {
           </button>
 
           {/* DELETE */}
-          <button
+          {/* <button
             type="button"
             disabled={isDeleting}
             className="btn btn-sm bg-danger text-white"
@@ -71,7 +73,7 @@ const ProductCard = ({ item, onDelete, onEdit, deletingId }) => {
             ) : (
               <i className="bi bi-trash me-1"></i>
             )}
-          </button>
+          </button> */}
         </div>
 
       </div>
@@ -90,7 +92,7 @@ const Product = () => {
     categoryId: "",
     image: null,
     inventory: "",
-
+    status: 1, // ✅ add this
   });
 
 
@@ -109,6 +111,7 @@ const Product = () => {
 
       // backend response pattern same hai
       setProductList(res.data.data);
+      console.log("Fetched Products:", res.data.data);
     } catch (error) {
     }
   };
@@ -127,16 +130,12 @@ const Product = () => {
     fetchProducts();
   }, []);
 
-
-
   const handleAdd = async () => {
-    // ✅ category required
     if (!form.categoryId) {
       toast.error("Please select a category");
       return;
     }
 
-    // ✅ image required
     if (!form.image) {
       toast.error("Please upload product image");
       return;
@@ -152,19 +151,16 @@ const Product = () => {
       formData.append("author", form.author);
       formData.append("price", form.price);
       formData.append("description", form.description);
-      formData.append("categoryId", form.categoryId); // 🔴 IMPORTANT
+      formData.append("categoryId", form.categoryId);
       formData.append("image", form.image);
       formData.append("inventory", form.inventory);
+      formData.append("status", form.status); // ✅ add this
 
-      // 🔴 STEP 1: Create product
       await createAdminProduct(formData);
-
-      // 🔴 STEP 2: Fetch fresh products
       await fetchProducts();
 
       toast.success("Product added successfully");
 
-      // 🔄 reset form
       setForm({
         publishedDate: "",
         name: "",
@@ -174,10 +170,10 @@ const Product = () => {
         categoryId: null,
         image: null,
         inventory: "",
+        status: 1,
       });
 
-      setIsModalOpen(false); // close modal
-
+      setIsModalOpen(false);
     } catch (error) {
       toast.error("Product creation failed");
     } finally {
@@ -189,7 +185,6 @@ const Product = () => {
   const handleUpdate = async () => {
     if (!form.categoryId) {
       toast.error("Please select a category");
-      setIsLoading(false);
       return;
     }
 
@@ -208,9 +203,9 @@ const Product = () => {
       formData.append("categoryId", form.categoryId);
       formData.append("inventory", form.inventory);
 
+      // ✅ IMPORTANT (dynamic from form)
+      formData.append("status", form.status);
 
-
-      // image optional
       if (form.image) {
         formData.append("image", form.image);
       }
@@ -220,7 +215,6 @@ const Product = () => {
       toast.success("Product updated successfully");
       fetchProducts();
 
-      // reset
       setEditItem(null);
       setForm({
         publishedDate: "",
@@ -230,11 +224,11 @@ const Product = () => {
         description: "",
         inventory: "",
         categoryId: null,
-        status: 1,
         image: null,
+        status: 1,
       });
-      setIsModalOpen(false); // close modal
 
+      setIsModalOpen(false);
     } catch (error) {
       console.error("UPDATE ERROR:", error);
       toast.error("Update failed");
@@ -289,6 +283,8 @@ const Product = () => {
               description: "",
               categoryId: null,
               image: null,
+              inventory: "",
+              status: 1, // default active
             });
             setIsModalOpen(true);
           }}
@@ -415,7 +411,6 @@ const Product = () => {
                       onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
                     />
                   </div>
-
                 </div>
               </div>
 
@@ -578,6 +573,31 @@ const Product = () => {
                       />
                     </div>
 
+                    <div className="col-md-12 mb-3">
+                      <label className="form-label">Status</label>
+                      <br />
+
+                      <Switch
+                        checked={form.status === 1}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            status: event.currentTarget.checked ? 1 : 0,
+                          })
+                        }
+                        color="teal"
+                        size="md"
+                        label={form.status === 1 ? "Active" : "Inactive"}
+                        thumbIcon={
+                          form.status === 1 ? (
+                            <CheckIcon size={12} color="var(--mantine-color-teal-6)" />
+                          ) : (
+                            <XIcon size={12} color="var(--mantine-color-red-6)" />
+                          )
+                        }
+                      />
+                    </div>
+
                   </div>
                 </div>
 
@@ -605,37 +625,39 @@ const Product = () => {
                     Cancel
                   </button>
                 </div>
-
               </div>
             </div>
           </div>
         )}
 
 
-
         {/* PRODUCT CARDS */}
         <div className="d-flex flex-wrap">
           {Array.isArray(productList) &&
-            productList.map((item) => (
-              <ProductCard
-                key={item.id}
-                item={item}
-                onDelete={handleDelete}
-                onEdit={(item) => {
-                  setEditItem(item);
-                  setForm({
-                    name: item.name || "",
-                    author: item.author || "",
-                    publishedDate: item.publishedDate || "",
-                    categoryId: item.categoryId,
-                    price: item.price || "",
-                    description: item.description || "",
-                    image: null, // re-upload optional
-                  });
-                  setIsModalOpen(true); // modal open
-                }}
-              />
-            ))}
+            productList
+              .filter((item) => item.status === 1) // ✅ only active products
+              .map((item) => (
+                <ProductCard
+                  key={item.id}
+                  item={item}
+                  onDelete={handleDelete}
+                  onEdit={(item) => {
+                    setEditItem(item);
+                    setForm({
+                      name: item.name || "",
+                      author: item.author || "",
+                      publishedDate: item.publishedDate || "",
+                      categoryId: item.categoryId,
+                      price: item.price || "",
+                      description: item.description || "",
+                      image: null,
+                      inventory: item.inventory || "",
+                      status: item.status ?? 1, // ✅ important
+                    });
+                    setIsModalOpen(true);
+                  }}
+                />
+              ))}
         </div>
 
       </div>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
+    "@phosphor-icons/react": "^2.1.10",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "chart.js": "^4.3.0",
