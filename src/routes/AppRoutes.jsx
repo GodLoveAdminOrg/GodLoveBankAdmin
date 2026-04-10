@@ -12,6 +12,8 @@ import ToolsOfThinking from "../Pages/ToolsOfThinking/ToolsOfThinking";
 import ToolsDetailPage from "../Pages/ToolsOfThinking/ToolsDetailPage";
 import ChatPage from "../Pages/Chat/ChatPage";
 import UserTable from "../Pages/Product/Product";
+import SubscriptionPage from "../Pages/Subscription/SubscriptionPage";
+
 // import SubAdminPage from "../Pages/SubAdminPage/SubAdminPage";
 // import JobDetails from "./Pages/JobDetails/JobDetails"; // ✅ import this
 
@@ -25,15 +27,17 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/product" element={<UserTable />} />
       <Route path="/orders" element={<Ecommerce />} />
-      <Route path='/groups' element={<Groups/>}/>
+      <Route path='/groups' element={<Groups />} />
       {/* <Route path="/JobDetails" element={<JobDetails />} />  */}
       <Route path="/emotion/:emotion" element={<EmotionPage />} />
       {/* <Route path="/base-description" element={<BaseDescriptionPage />} /> */}
       <Route path="/media" element={<MediaControl />} />
       <Route path="/core-values" element={<CoreValues />} />
       <Route path="/tools-of-thinking" element={<ToolsOfThinking />} />
-      <Route path="/tools-of-thinking/:id" element={<ToolsDetailPage />}  />
+      <Route path="/tools-of-thinking/:id" element={<ToolsDetailPage />} />
       <Route path="/chat" element={<ChatPage />} />
+      <Route path="/subscription" element={<SubscriptionPage />} />
+
       {/* <Route path="/subadminpage" element={<SubAdminPage />} /> */}
 
       {/* 
