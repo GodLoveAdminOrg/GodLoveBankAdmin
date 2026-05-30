@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "godlove-bank-admin",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,12 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mantine/core": "^7.17.8",
     "@mantine/hooks": "^7.17.8",
+    "@mui/icons-material": "^9.0.1",
+    "@mui/material": "^9.0.1",
+    "@mui/x-data-grid": "^9.3.0",
     "@phosphor-icons/react": "^2.1.10",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "chart.js": "^4.3.0",
+    "gsap": "^3.15.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.7.4",
     "react-chartjs-2": "^5.2.0",

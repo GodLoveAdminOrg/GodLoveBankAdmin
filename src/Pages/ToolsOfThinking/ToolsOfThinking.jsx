@@ -1,29 +1,30 @@
-import Layout from "../../Components/Layout";
-import CoreValuesCard from "../../Components/CoreValueCard";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box, CircularProgress, Stack } from "@mui/material";
+import Layout from "../../components/layout/Layout";
+import PageHeader from "../../components/common/PageHeader";
+import usePagination from "../../components/common/usePagination";
+import CoreValuesCard from "../../components/shared/CoreValueCard";
+import {
+  getAdminToolsOfThinking,
+  updateAdminToolOfThinkingAudio,
+} from "../../Services/toolofthinkingApi";
 
-import { getAdminToolsOfThinking, updateAdminToolOfThinkingAudio } from "../../Services/toolofthinkingApi";
-
-
-
+// Only these cards open a detail table.
+const tablePages = {
+  36: "No. of Request",
+  37: "Subject",
+  39: "Goal Name",
+  41: "Goal Name",
+};
 
 export default function ToolsOfThinking() {
-    const navigate = useNavigate();
-    const [tools, setTools] = useState([]);
-    const [loading, setLoading] = useState(true);
-    
+  const navigate = useNavigate();
+  const [tools, setTools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { pageItems, Pager } = usePagination(tools, 9);
 
-  
-  // Only these cards should open a table
-  const tablePages = {
-    36: "No. of Request",
-    37: "Subject",
-    39: "Goal Name",
-    41: "Goal Name",
-  };
-
-   useEffect(() => {
+  useEffect(() => {
     fetchTools();
   }, []);
 
@@ -47,48 +48,37 @@ export default function ToolsOfThinking() {
 
   return (
     <Layout>
-      {/* Pie Chart outside of row */}
-  {/* <div className="d-flex justify-content-center mt-5">
-    <TaskPieChart totalUsers={totalUsers} completedUsers={completedUsers} />
-  </div> */}
-  <div className="d-flex justify-content-center mb-4 py-3 px-3 border rounded" style={{ background: "rgb(247, 248, 250)"}}>
-      <h2 className="fw-bold text-danger fs-2">Tools of Thinking</h2>
-    </div> 
-      <div className="container py-0 " >
-      {loading && <p>Loading tools...</p>}
+      <PageHeader title="Tools of Thinking" subtitle="Manage tools and their audio" />
 
-        {/* Stack layout */}
-        {/* <div className="row">
-          {coreValues.map((value, index) => (
-            <CoreValuesCard
-              key={index}
-              title={`${index + 1}- ${value.title}`}
-              color={value.color}
-              onDelete={() => console.log(`Delete clicked for card ${index + 1}`)}
-              onClick={() => handleCardClick(index + 1)}
-
-            />
-          ))}
-        </div> */}
-        <div className="row">
-          {tools.map((tool, index) => (
-            <CoreValuesCard
-              key={tool.id}
-              coreValue={tool}
-              title={`${index + 1}- ${tool.name}`}
-              color="rgba(179,179,179,1)"
-              audioUrl={tool.audioUrl}
-
-              enableAudioUpload={!tool.audioUrl}                  // disable upload if audio exists
-              onUpload={updateAdminToolOfThinkingAudio}          // API call
-              onUpdated={fetchTools}                              // refresh after upload
-
-              onClick={() => handleCardClick(tool.id)}
-              onDelete={() => console.log(`Delete clicked for tool ${tool.id}`)}
-            />
-          ))}
-        </div>
-      </div>
+      {loading ? (
+        <Stack alignItems="center" sx={{ py: 8 }}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+        <>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "repeat(2,1fr)", xl: "repeat(3,1fr)" },
+              gap: 3,
+            }}
+          >
+            {pageItems.map((tool) => (
+              <CoreValuesCard
+                key={tool.id}
+                coreValue={tool}
+                title={`${tools.indexOf(tool) + 1}. ${tool.name}`}
+                color="#6b6b6b"
+                audioUrl={tool.audioUrl}
+                onUpload={updateAdminToolOfThinkingAudio}
+                onUpdated={fetchTools}
+                onClick={tablePages[tool.id] ? () => handleCardClick(tool.id) : undefined}
+              />
+            ))}
+          </Box>
+          <Pager />
+        </>
+      )}
     </Layout>
   );
 }

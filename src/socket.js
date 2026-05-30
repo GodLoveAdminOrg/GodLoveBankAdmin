@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import { SERVER_URL } from "./config";
 
-const socket = io("http://18.204.175.233:3001", {
+const socket = io(SERVER_URL, {
   autoConnect: false,
 });
 export default socket;

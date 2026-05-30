@@ -1,7 +1,7 @@
 // import React, { useState } from "react";
 // import SubAdminTable from "./SubAdminTable";
 // import SubAdminModal from "./SubAdminModal";
-// import Layout from "../../Components/Layout";
+// import Layout from "../../components/layout/Layout";
 
 // const initialData = [
 //   {

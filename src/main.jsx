@@ -9,6 +9,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from './theme.js';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <MantineProvider
@@ -32,9 +36,12 @@ createRoot(document.getElementById('root')).render(
         primaryColor: "brand",
       }}
     >
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
     </MantineProvider>
   </StrictMode>
 );

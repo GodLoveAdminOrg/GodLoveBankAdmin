@@ -1,291 +1,216 @@
-import { useEffect, useState } from "react";
-import Layout from "../../Components/Layout";
-import { Pagination } from "@mantine/core";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import ResponsiveDialog from "../../components/common/ResponsiveDialog";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import PeopleIcon from "@mui/icons-material/People";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
+import { toast } from "react-toastify";
+
+import Layout from "../../components/layout/Layout";
+import DataTable from "../../components/common/DataTable";
+import StatCard from "../../components/common/StatCard";
+import PageHeader from "../../components/common/PageHeader";
+import { fileUrl } from "../../config";
+import fallback from "../../assets/profile.png";
 import { getAdminUsers, deleteUser } from "../../Services/homeApi";
 
-const API_BASE_URL = "http://18.204.175.233:3001";
+const getFullName = (u) =>
+  `${u?.firstName || ""} ${u?.lastName || ""}`.trim() || "N/A";
 
-const SelfLoveTable = () => {
+const userImage = (image) => {
+  if (!image) return fallback;
+  if (String(image).startsWith("http")) return image;
+  return fileUrl(image);
+};
+
+export default function Users() {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const USERS_PER_PAGE = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchUsers = async (page = 1) => {
+  const fetchUsers = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await getAdminUsers(page, USERS_PER_PAGE);
-
-      const fetchedUsers = res?.data?.data?.users || [];
-      setUsers(fetchedUsers);
-      setTotalPages(res?.data?.data?.totalPages || 1);
-      setCurrentPage(res?.data?.data?.page || 1);
-
-      console.log("Users fetched:", fetchedUsers);
+      const res = await getAdminUsers(1, 1000);
+      setUsers(res?.data?.data?.users || []);
     } catch (err) {
-      console.error("Users fetch failed", err);
+      toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers(currentPage);
-  }, [currentPage]);
+    fetchUsers();
+  }, []);
 
-  const totalUsers = users.length;
-  const activeUsers = users.filter((u) => u.status === 1).length;
-  const nonActiveUsers = totalUsers - activeUsers;
+  const stats = useMemo(() => {
+    const total = users.length;
+    const active = users.filter((u) => u.status === 1).length;
+    return { total, active, inactive: total - active };
+  }, [users]);
 
-  const getFullName = (user) =>
-    `${user.firstName || ""} ${user.lastName || ""}`.trim() || "N/A";
-
-  const getStatusLabel = (status) =>
-    status === 1 ? "Active" : "Non-Active";
-
-  const getUserImage = (image) => {
-    if (!image) return "/src/assets/profile.png";
-    if (image.startsWith("http")) return image;
-    return `${API_BASE_URL}/${image}`;
-  };
+  // enrich rows for search/sort
+  const rows = useMemo(
+    () =>
+      users.map((u) => ({
+        ...u,
+        fullName: getFullName(u),
+        statusLabel: u.status === 1 ? "Active" : "Non-Active",
+      })),
+    [users]
+  );
 
   const handleDelete = async (user) => {
+    const userId = user._id || user.id;
+    if (!userId) return toast.error("User ID not found");
+    if (!window.confirm(`Delete ${getFullName(user)}?`)) return;
+    const previous = users;
+    setUsers((prev) => prev.filter((u) => (u._id || u.id) !== userId));
     try {
-      const userId = user._id || user.id;
-
-      if (!userId) {
-        alert("User ID not found");
-        return;
-      }
-
-      const confirmDelete = window.confirm(
-        `Delete ${getFullName(user)}?`
-      );
-      if (!confirmDelete) return;
-
       await deleteUser(userId);
-
-      setUsers((prev) => prev.filter((u) => (u._id || u.id) !== userId));
-
-    } catch (error) {
-      console.error("Delete failed", error);
-      alert("Delete API failed (check URL or ID)");
+      toast.success("User deleted");
+    } catch {
+      setUsers(previous);
+      toast.error("Delete failed");
     }
   };
 
+  const columns = [
+    {
+      field: "fullName",
+      headerName: "User",
+      flex: 1.4,
+      minWidth: 200,
+      renderCell: (p) => (
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Avatar src={userImage(p.row.image)} sx={{ width: 34, height: 34 }} />
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {p.value}
+          </Typography>
+        </Stack>
+      ),
+    },
+    { field: "gender", headerName: "Gender", width: 110, valueGetter: (v) => v || "-" },
+    { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
+    {
+      field: "statusLabel",
+      headerName: "Status",
+      width: 130,
+      renderCell: (p) => (
+        <Chip
+          label={p.value}
+          size="small"
+          color={p.row.status === 1 ? "success" : "default"}
+          variant={p.row.status === 1 ? "filled" : "outlined"}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      width: 70,
+      sortable: false,
+      filterable: false,
+      renderCell: (p) => (
+        <Tooltip title="Delete">
+          <IconButton
+            color="error"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(p.row);
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ),
+    },
+  ];
+
+  const detail = (label, value) => (
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+        {value || "-"}
+      </Typography>
+    </Box>
+  );
+
   return (
     <Layout>
-      <div
-        className="container-fluid py-2 px-4"
-        style={{ background: "#F7F8FA" }}
+      <PageHeader title="Users" subtitle="All registered app users" />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gap: 3,
+          mb: 3,
+        }}
       >
-        <h1 className="fs-3 pb-3">Users</h1>
+        <StatCard label="Total Users" value={stats.total} icon={<PeopleIcon />} color="primary.main" />
+        <StatCard label="Active Users" value={stats.active} icon={<HowToRegIcon />} color="success.main" />
+        <StatCard label="Non-Active Users" value={stats.inactive} icon={<PersonOffIcon />} color="#9e9e9e" />
+      </Box>
 
-        <div className="row gx-3">
-          <div className="col-md-3">
-            <div className="card shadow-sm mb-4">
-              <div className="card-body text-center">
-                <h2>{totalUsers}</h2>
-                <p className="text-muted">Total Users</p>
-              </div>
-            </div>
-          </div>
+      <DataTable
+        rows={rows}
+        columns={columns}
+        loading={loading}
+        searchPlaceholder="Search users…"
+        onRowClick={(params) => setSelectedUser(params.row)}
+      />
 
-          <div className="col-md-3">
-            <div className="card shadow-sm mb-4">
-              <div className="card-body text-center">
-                <h2>{activeUsers}</h2>
-                <p className="text-muted">Active Users</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-3">
-            <div className="card shadow-sm mb-4">
-              <div className="card-body text-center">
-                <h2>{nonActiveUsers}</h2>
-                <p className="text-muted">Non-Active Users</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <table className="table table-bordered align-middle mt-3">
-        <thead className="table-light">
-          <tr>
-            <th>User</th>
-            <th>Gender</th>
-            <th>Email</th>
-            <th className="text-center">Status</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {users.map((user) => (
-            <tr
-              key={user.id || user.email}
-              style={{ cursor: "pointer" }}
-              onClick={() => setSelectedUser(user)}
-            >
-              <td>
-                <div className="d-flex align-items-center gap-3">
-                  <img
-                    src={getUserImage(user.image)}
-                    alt={getFullName(user)}
-                    width="40"
-                    height="40"
-                    className="rounded-circle"
-                  />
-                  <strong>{getFullName(user)}</strong>
-                </div>
-              </td>
-
-              <td>{user.gender || "-"}</td>
-              <td>{user.email}</td>
-
-              {/* ✅ STATUS + TRASH ICON */}
-              <td className="text-center">
-                <div className="d-flex justify-content-center align-items-center gap-4">
-                  <span
-                    className={`badge ${user.status === 1 ? "bg-success" : "bg-secondary"
-                      }`}
-                  >
-                    {getStatusLabel(user.status)}
-                  </span>
-
-                  <i
-                    className="bi bi-trash text-danger"
-                    style={{
-                      cursor: "pointer",
-                      fontSize: "18px",
-                      transition: "0.2s",
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(user);
-                    }}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.transform = "scale(1.2)")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
-                  ></i>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Mantine Pagination */}
-      {totalPages > 1 && (
-        <div className="d-flex justify-content-end mt-3">
-          <Pagination
-            total={totalPages}
-            value={currentPage}
-            onChange={setCurrentPage}
-            size="md"
-            radius="md"
-            withEdges
-            color="brand"
-          />
-        </div>
-      )}
-
-      {/* MODAL */}
-      {selectedUser && (
-        <>
-          <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-            <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content">
-
-                <div className="modal-header">
-                  <h5 className="modal-title">User Details</h5>
-                  <button
-                    className="btn-close"
-                    onClick={() => setSelectedUser(null)}
-                  />
-                </div>
-
-                <div className="modal-body">
-                  <div className="text-center mb-3">
-                    <img
-                      src={getUserImage(selectedUser.image) || "/src/assets/profile.png"}
-                      width="80"
-                      height="80"
-                      className="rounded-circle mb-2"
-                      alt="user"
-                    />
-                    <h5>{getFullName(selectedUser)}</h5>
-                    <p className="text-muted">{selectedUser.email}</p>
-                  </div>
-
-                  <hr />
-
-                  <div className="row">
-                    <div className="col-md-6 mb-2">
-                      <strong>Gender:</strong> {selectedUser.gender || "-"}
-                    </div>
-
-                    <div className="col-md-6 mb-2">
-                      <strong>Status:</strong>{" "}
-                      <span
-                        className={`badge ${selectedUser.status === 1 ? "bg-success" : "bg-secondary"
-                          }`}
-                      >
-                        {getStatusLabel(selectedUser.status)}
-                      </span>
-                    </div>
-
-                    <div className="col-md-6 mb-2">
-                      <strong>Country:</strong> {selectedUser.country || "-"}
-                    </div>
-
-                    <div className="col-md-6 mb-2">
-                      <strong>City:</strong> {selectedUser.city || "-"}
-                    </div>
-
-                    <div className="col-md-6 mb-2">
-                      <strong>Postal Code:</strong> {selectedUser.postalCode || "-"}
-                    </div>
-
-                    <div className="col-md-6 mb-2">
-                      <strong>Relationship:</strong>{" "}
-                      {selectedUser.relationshipStatus || "-"}
-                    </div>
-
-                    <div className="col-12 mt-2">
-                      <strong>New Self Love Home Base:</strong>{" "}
-                      {selectedUser.selfLoveBase || "-"}{" "}
-                      <span className="badge bg-primary ms-2">
-                        {selectedUser.newSelfStory || "-"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => setSelectedUser(null)}
-                  >
-                    Close
-                  </button>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-backdrop fade show"></div>
-        </>
-      )}
+      {/* USER DETAILS */}
+      <ResponsiveDialog open={Boolean(selectedUser)} onClose={() => setSelectedUser(null)} fullWidth maxWidth="sm">
+        {selectedUser && (
+          <>
+            <DialogTitle sx={{ fontWeight: 700 }}>User Details</DialogTitle>
+            <DialogContent dividers>
+              <Stack alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                <Avatar src={userImage(selectedUser.image)} sx={{ width: 80, height: 80 }} />
+                <Typography variant="h6">{getFullName(selectedUser)}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedUser.email}
+                </Typography>
+                <Chip
+                  label={selectedUser.status === 1 ? "Active" : "Non-Active"}
+                  color={selectedUser.status === 1 ? "success" : "default"}
+                  size="small"
+                />
+              </Stack>
+              <Divider sx={{ mb: 2 }} />
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1 }}>
+                {detail("Gender", selectedUser.gender)}
+                {detail("Country", selectedUser.country)}
+                {detail("City", selectedUser.city)}
+                {detail("Postal Code", selectedUser.postalCode)}
+                {detail("Relationship", selectedUser.relationshipStatus)}
+                {detail("Self Love Base", selectedUser.selfLoveBase)}
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, py: 2 }}>
+              <Button onClick={() => setSelectedUser(null)}>Close</Button>
+            </DialogActions>
+          </>
+        )}
+      </ResponsiveDialog>
     </Layout>
   );
-};
-
-export default SelfLoveTable;
+}

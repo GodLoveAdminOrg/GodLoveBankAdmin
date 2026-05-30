@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, Link } from "react-router-dom"; // Use only if using React Router
-import logo from "../assets/logo.png"; // Adjust to your project structure
+import logo from "../../assets/logo.png"; // Adjust to your project structure
 import {
   BiGridAlt,
   BiNetworkChart,

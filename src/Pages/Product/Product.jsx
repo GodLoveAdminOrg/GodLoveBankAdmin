@@ -1,127 +1,91 @@
-import { useState } from "react";
-import Layout from "../../Components/Layout";
-import { useEffect } from "react";
-import { getProductCategories } from "../../Services/productApi";
-import { getAdminProducts } from "../../Services/productApi";
-import fallback from "../../assets/fallback.png";
-import { createAdminProduct } from "../../Services/productApi";
-import { updateAdminProduct } from "../../Services/productApi";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  IconButton,
+  MenuItem,
+  Stack,
+  Switch,
+  TextField,
+  Tooltip,
+} from "@mui/material";
+import ResponsiveDialog from "../../components/common/ResponsiveDialog";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { toast } from "react-toastify";
-import { deleteProductVideo } from "../../Services/productApi";
-import { Switch } from "@mantine/core";
-import { CheckIcon, XIcon } from "@phosphor-icons/react";
 
+import Layout from "../../components/layout/Layout";
+import DataTable from "../../components/common/DataTable";
+import PageHeader from "../../components/common/PageHeader";
+import { fileUrl } from "../../config";
+import fallback from "../../assets/fallback.png";
+import {
+  getProductCategories,
+  getAdminProducts,
+  createAdminProduct,
+  updateAdminProduct,
+  deleteProductVideo,
+} from "../../Services/productApi";
 
-const ProductCard = ({ item, onDelete, onEdit, deletingId }) => {
-  const isDeleting = deletingId === item.id;
-
-  return (
-    <div className="card shadow-sm mx-2 mb-4" style={{ width: "350px" }}>
-
-      <img
-        src={item.image ? `http://18.204.175.233:3001/${item.image}` : fallback}
-        className="card-img-top"
-        style={{ height: "220px", objectFit: "cover", borderRadius: "8px" }}
-        alt={item.name}
-      />
-
-      <div className="card-body">
-
-        {/* Publish Date */}
-        <p className="text-muted mb-1">{item.publishedDate}</p>
-
-        {/* Book Name + Price */}
-        <div className="d-flex justify-content-between align-items-center">
-          <h5 className="fw-bold mb-1">{item.name}</h5>
-
-          <span className="fw-bold text-success" style={{ fontSize: "18px" }}>
-            ${item.price}
-          </span>
-        </div>
-
-        {/* Author */}
-        <p className="text-muted mb-2" style={{ fontSize: "15px" }}>
-          by {item.author}
-        </p>
-
-        {/* Description */}
-        <h6 className="fw-bold mt-3 mb-2">About The Book</h6>
-        <p className="text-muted description-clamp" style={{ fontSize: "14px" }}>
-          {item.description}
-        </p>
-
-        <div className="d-flex gap-2 mt-3">
-          <button
-            className="btn btn-sm btn-outline-primary"
-            onClick={() => onEdit(item)}
-          >
-            <i className="bi bi-pencil-square"></i>
-          </button>
-
-          {/* DELETE */}
-          {/* <button
-            type="button"
-            disabled={isDeleting}
-            className="btn btn-sm bg-danger text-white"
-            onClick={() => onDelete(item.id)}
-          >
-            {isDeleting ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2"></span>
-                Deleting...
-              </>
-            ) : (
-              <i className="bi bi-trash me-1"></i>
-            )}
-          </button> */}
-        </div>
-
-      </div>
-    </div>
-  );
+const EMPTY_FORM = {
+  publishedDate: "",
+  name: "",
+  author: "",
+  price: "",
+  description: "",
+  categoryId: "",
+  image: null,
+  inventory: "",
+  status: 1,
 };
 
-
-const Product = () => {
-  const [form, setForm] = useState({
-    publishedDate: "",
-    name: "",
-    author: "",
-    price: "",
-    description: "",
-    categoryId: "",
-    image: null,
-    inventory: "",
-    status: 1, // ✅ add this
-  });
-
-
+export default function Product() {
+  const [form, setForm] = useState(EMPTY_FORM);
   const [productList, setProductList] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const fetchProducts = async () => {
-    try {
-      const res = await getAdminProducts();
-
-
-      // backend response pattern same hai
-      setProductList(res.data.data);
-      console.log("Fetched Products:", res.data.data);
-    } catch (error) {
-    }
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = "Product name is required";
+    if (form.price === "" || form.price === null) e.price = "Price is required";
+    else if (Number(form.price) < 0) e.price = "Price cannot be negative";
+    if (!form.categoryId) e.categoryId = "Category is required";
+    if (!editItem && !form.image) e.image = "Product image is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await getAdminProducts();
+      setProductList(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch (error) {
+      toast.error("Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
       const res = await getProductCategories();
-      setCategories(res.data.data);
+      setCategories(Array.isArray(res.data?.data) ? res.data.data : []);
     } catch (error) {
+      /* non-blocking */
     }
   };
 
@@ -130,539 +94,307 @@ const Product = () => {
     fetchProducts();
   }, []);
 
+  const categoryMap = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c.name])),
+    [categories]
+  );
+
+  // Rows enriched with category name for display/search/sort.
+  const rows = useMemo(
+    () =>
+      productList.map((p) => ({
+        ...p,
+        categoryName: categoryMap[p.categoryId] || "—",
+      })),
+    [productList, categoryMap]
+  );
+
+  const openAdd = () => {
+    setEditItem(null);
+    setForm(EMPTY_FORM);
+    setErrors({});
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (item) => {
+    setEditItem(item);
+    setErrors({});
+    setForm({
+      publishedDate: item.publishedDate || "",
+      name: item.name || "",
+      author: item.author || "",
+      price: item.price || "",
+      description: item.description || "",
+      categoryId: item.categoryId ?? "",
+      image: null,
+      inventory: item.inventory || "",
+      status: item.status ?? 1,
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditItem(null);
+  };
+
+  const buildFormData = (includeImageRequired) => {
+    const fd = new FormData();
+    fd.append("publishedDate", form.publishedDate);
+    fd.append("name", form.name);
+    fd.append("author", form.author);
+    fd.append("price", form.price);
+    fd.append("description", form.description);
+    fd.append("categoryId", form.categoryId);
+    fd.append("inventory", form.inventory);
+    fd.append("status", form.status);
+    if (form.image) fd.append("image", form.image);
+    return fd;
+  };
+
   const handleAdd = async () => {
-    if (!form.categoryId) {
-      toast.error("Please select a category");
-      return;
-    }
-
-    if (!form.image) {
-      toast.error("Please upload product image");
-      return;
-    }
-
-    setIsLoading(true);
-
+    if (!validate()) return;
+    setSaving(true);
     try {
-      const formData = new FormData();
-
-      formData.append("publishedDate", form.publishedDate);
-      formData.append("name", form.name);
-      formData.append("author", form.author);
-      formData.append("price", form.price);
-      formData.append("description", form.description);
-      formData.append("categoryId", form.categoryId);
-      formData.append("image", form.image);
-      formData.append("inventory", form.inventory);
-      formData.append("status", form.status); // ✅ add this
-
-      await createAdminProduct(formData);
+      await createAdminProduct(buildFormData());
       await fetchProducts();
-
       toast.success("Product added successfully");
-
-      setForm({
-        publishedDate: "",
-        name: "",
-        author: "",
-        price: "",
-        description: "",
-        categoryId: null,
-        image: null,
-        inventory: "",
-        status: 1,
-      });
-
-      setIsModalOpen(false);
-    } catch (error) {
+      closeModal();
+      setForm(EMPTY_FORM);
+    } catch {
       toast.error("Product creation failed");
     } finally {
-      setIsLoading(false);
+      setSaving(false);
     }
   };
 
-  // UPDATE HANDLER
   const handleUpdate = async () => {
-    if (!form.categoryId) {
-      toast.error("Please select a category");
-      return;
-    }
-
     if (!editItem) return;
-
-    setIsUpdating(true);
-
+    if (!validate()) return;
+    setSaving(true);
     try {
-      const formData = new FormData();
-
-      formData.append("publishedDate", form.publishedDate);
-      formData.append("name", form.name);
-      formData.append("author", form.author);
-      formData.append("price", form.price);
-      formData.append("description", form.description);
-      formData.append("categoryId", form.categoryId);
-      formData.append("inventory", form.inventory);
-
-      // ✅ IMPORTANT (dynamic from form)
-      formData.append("status", form.status);
-
-      if (form.image) {
-        formData.append("image", form.image);
-      }
-
-      await updateAdminProduct(editItem.id, formData);
-
+      await updateAdminProduct(editItem.id, buildFormData());
+      await fetchProducts();
       toast.success("Product updated successfully");
-      fetchProducts();
-
-      setEditItem(null);
-      setForm({
-        publishedDate: "",
-        name: "",
-        author: "",
-        price: "",
-        description: "",
-        inventory: "",
-        categoryId: null,
-        image: null,
-        status: 1,
-      });
-
-      setIsModalOpen(false);
+      closeModal();
+      setForm(EMPTY_FORM);
     } catch (error) {
-      console.error("UPDATE ERROR:", error);
       toast.error("Update failed");
     } finally {
-      setIsUpdating(false);
+      setSaving(false);
     }
   };
-
 
   const handleDelete = async (id) => {
-    console.log("Deleting Product id:", id);
-    console.log("Type of id:", typeof id);
-
-
-    if (!window.confirm("Delete this Product?")) return;
-
-    //  Optimistic UI (instant remove)
-    const previousList = productList;
+    if (!window.confirm("Delete this product?")) return;
+    const previous = productList;
     setProductList((prev) => prev.filter((v) => v.id !== id));
-    setDeletingId(id);
-
     try {
       await deleteProductVideo(id);
-      fetchProducts(); // refresh list
       toast.success("Product deleted successfully");
+      fetchProducts();
     } catch (error) {
-      // set(previousList); // revert back
-      toast.error("Failed to delete Product");
-      console.error("DELETE ERROR FULL:", error.response?.data);
-      console.error("STATUS:", error.response?.status);
-    } finally {
-      setDeletingId(null);
+      setProductList(previous); // revert
+      toast.error("Failed to delete product");
     }
   };
 
+  const columns = [
+    {
+      field: "image",
+      headerName: "",
+      width: 64,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Avatar
+          variant="rounded"
+          src={params.value ? fileUrl(params.value) : fallback}
+          alt={params.row.name}
+          sx={{ width: 40, height: 40 }}
+        />
+      ),
+    },
+    { field: "name", headerName: "Product", flex: 1.4, minWidth: 160 },
+    { field: "author", headerName: "Author", flex: 1, minWidth: 120 },
+    { field: "categoryName", headerName: "Category", flex: 1, minWidth: 120 },
+    {
+      field: "price",
+      headerName: "Price",
+      width: 100,
+      renderCell: (p) => `$${p.value ?? 0}`,
+    },
+    { field: "inventory", headerName: "Stock", width: 90, type: "number" },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 110,
+      renderCell: (p) => (
+        <Chip
+          label={p.value === 1 ? "Active" : "Inactive"}
+          color={p.value === 1 ? "success" : "default"}
+          size="small"
+          variant={p.value === 1 ? "filled" : "outlined"}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 110,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={0.5}>
+          <Tooltip title="Edit">
+            <IconButton color="primary" onClick={() => openEdit(params.row)}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton color="error" onClick={() => handleDelete(params.row.id)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      ),
+    },
+  ];
 
   return (
     <Layout>
-      <div className="container-fluid py-3 px-4" style={{ background: "rgb(247, 248, 250)" }}>
-        <h1 className="fs-3 pb-3">Product</h1>
+      <PageHeader
+        title="Products"
+        subtitle="Manage your product catalog"
+        actions={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openAdd}>
+            Add Product
+          </Button>
+        }
+      />
+      <DataTable
+        rows={rows}
+        columns={columns}
+        loading={loading}
+        searchPlaceholder="Search products…"
+      />
 
-        <button
-          className="btn text-white mb-4"
-          style={{ background: "#F55227" }}
-          onClick={() => {
-            setEditItem(null);
-            setForm({
-              publishedDate: "",
-              name: "",
-              author: "",
-              price: "",
-              description: "",
-              categoryId: null,
-              image: null,
-              inventory: "",
-              status: 1, // default active
-            });
-            setIsModalOpen(true);
-          }}
-        >
-          Add Product +
-        </button>
-
-
-        {/* MODAL */}
-        <div
-          className="modal fade"
-          id="mediaModal"
-          tabIndex="-1"
-          aria-hidden="true"
-        >
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Product Form</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                ></button>
-              </div>
-
-
-              <div className="modal-body">
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Publish Date</label>
-                    <input
-                      type="date"
-                      className="form-control"
-                      value={form.publishedDate}
-                      onChange={(e) => setForm({ ...form, publishedDate: e.target.value })}
-                    />
-                  </div>
-
-
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Book Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Price</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
-                      placeholder="Enter price"
-                    />
-                  </div>
-                  {/* Category */}
-                  <div className="col-md-6 mb-3">
-
-                    {/* Category Upload */}
-                    <label className="form-label">Category</label>
-                    <select
-                      className="form-select"
-                      value={form.categoryId ?? ""}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          categoryId: Number(e.target.value), // 🔴 ID form me ja rahi hai
-                        })
-                      }
-                    >
-                      <option value="">Select Category</option>
-
-                      {categories
-                        .filter((cat) => cat.status === 1)
-                        .map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  {/* Author */}
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Author Name</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={form.author}
-                      onChange={(e) => setForm({ ...form, author: e.target.value })}
-                    />
-                  </div>
-                  {/* Inventory */}
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Inventory</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={form.inventory}
-                      onChange={(e) => setForm({ ...form, inventory: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="col-md-12 mb-3">
-                    <label className="form-label">About The Book</label>
-                    <textarea
-                      className="form-control"
-                      rows="4"
-                      value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    ></textarea>
-                  </div>
-
-                  <div className="col-md-12 mb-3">
-                    <label className="form-label">Book Cover Image</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="form-control"
-                      onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="modal-footer">
-                <button
-                  className="btn btn-success"
-                  onClick={editItem ? handleUpdate : handleAdd}
-                  disabled={isLoading || isUpdating}
-                >
-                  {isUpdating ? "Updating..." : editItem ? "Update" : "Save"}
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* PRODUCT MODAL */}
-        {isModalOpen && (
-          <div className="modal fade show d-block" tabIndex="-1">
-            <div className="modal-dialog modal-lg">
-              <div className="modal-content">
-
-                {/* HEADER */}
-                <div className="modal-header">
-                  <h5 className="modal-title">
-                    {editItem ? "Edit Product" : "Add Product"}
-                  </h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      setEditItem(null);
-                    }}
-                  ></button>
-                </div>
-
-                {/* BODY */}
-                <div className="modal-body">
-                  <div className="row">
-
-                    {/* Publish Date */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Publish Date</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        value={form.publishedDate}
-                        onChange={(e) =>
-                          setForm({ ...form, publishedDate: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Product Name */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Product Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={form.name}
-                        onChange={(e) =>
-                          setForm({ ...form, name: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Price */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Price</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={form.price}
-                        onChange={(e) =>
-                          setForm({ ...form, price: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Category */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Category</label>
-                      <select
-                        className="form-select"
-                        value={form.categoryId ?? ""}
-                        onChange={(e) =>
-                          setForm({
-                            ...form,
-                            categoryId: Number(e.target.value),
-                          })
-                        }
-                      >
-                        <option value="">Select Category</option>
-                        {categories
-                          .filter((cat) => cat.status === 1)
-                          .map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-
-                    {/* Author */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Author</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={form.author}
-                        onChange={(e) =>
-                          setForm({ ...form, author: e.target.value })
-                        }
-                      />
-                    </div>
-                    {/* Inventory */}
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Inventory</label>
-                      <input
-                        type="number"
-                        className="form-control"
-                        value={form.inventory}
-                        onChange={(e) => setForm({ ...form, inventory: e.target.value })}
-                      />
-                    </div>
-
-                    {/* Description */}
-                    <div className="col-md-12 mb-3">
-                      <label className="form-label">Description</label>
-                      <textarea
-                        className="form-control"
-                        rows="4"
-                        value={form.description}
-                        onChange={(e) =>
-                          setForm({ ...form, description: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Image */}
-                    <div className="col-md-12 mb-3">
-                      <label className="form-label">
-                        Product Image {editItem && "(Optional)"}
-                      </label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="form-control"
-                        onChange={(e) =>
-                          setForm({ ...form, image: e.target.files[0] })
-                        }
-                      />
-                    </div>
-
-                    <div className="col-md-12 mb-3">
-                      <label className="form-label">Status</label>
-                      <br />
-
-                      <Switch
-                        checked={form.status === 1}
-                        onChange={(event) =>
-                          setForm({
-                            ...form,
-                            status: event.currentTarget.checked ? 1 : 0,
-                          })
-                        }
-                        color="teal"
-                        size="md"
-                        label={form.status === 1 ? "Active" : "Inactive"}
-                        thumbIcon={
-                          form.status === 1 ? (
-                            <CheckIcon size={12} color="var(--mantine-color-teal-6)" />
-                          ) : (
-                            <XIcon size={12} color="var(--mantine-color-red-6)" />
-                          )
-                        }
-                      />
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* FOOTER */}
-                <div className="modal-footer">
-                  <button
-                    className="btn btn-success"
-                    onClick={editItem ? handleUpdate : handleAdd}
-                    disabled={isLoading || isUpdating}
-                  >
-                    {isUpdating
-                      ? "Updating..."
-                      : editItem
-                        ? "Update"
-                        : "Save"}
-                  </button>
-
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      setEditItem(null);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* PRODUCT CARDS */}
-        <div className="d-flex flex-wrap">
-          {Array.isArray(productList) &&
-            productList
-              .filter((item) => item.status === 1) // ✅ only active products
-              .map((item) => (
-                <ProductCard
-                  key={item.id}
-                  item={item}
-                  onDelete={handleDelete}
-                  onEdit={(item) => {
-                    setEditItem(item);
-                    setForm({
-                      name: item.name || "",
-                      author: item.author || "",
-                      publishedDate: item.publishedDate || "",
-                      categoryId: item.categoryId,
-                      price: item.price || "",
-                      description: item.description || "",
-                      image: null,
-                      inventory: item.inventory || "",
-                      status: item.status ?? 1, // ✅ important
-                    });
-                    setIsModalOpen(true);
-                  }}
+      {/* ADD / EDIT FORM */}
+      <ResponsiveDialog open={isModalOpen} onClose={closeModal} fullWidth maxWidth="md">
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          {editItem ? "Edit Product" : "Add Product"}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+              pt: 1,
+            }}
+          >
+            <TextField
+              label="Publish Date"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              value={form.publishedDate}
+              onChange={(e) => setForm({ ...form, publishedDate: e.target.value })}
+            />
+            <TextField
+              label="Product Name"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              error={Boolean(errors.name)}
+              helperText={errors.name}
+            />
+            <TextField
+              label="Price"
+              type="number"
+              required
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              error={Boolean(errors.price)}
+              helperText={errors.price}
+            />
+            <TextField
+              select
+              label="Category"
+              required
+              value={form.categoryId ?? ""}
+              onChange={(e) => setForm({ ...form, categoryId: Number(e.target.value) })}
+              error={Boolean(errors.categoryId)}
+              helperText={errors.categoryId}
+            >
+              <MenuItem value="">Select Category</MenuItem>
+              {categories
+                .filter((c) => c.status === 1)
+                .map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.name}
+                  </MenuItem>
+                ))}
+            </TextField>
+            <TextField
+              label="Author"
+              value={form.author}
+              onChange={(e) => setForm({ ...form, author: e.target.value })}
+            />
+            <TextField
+              label="Inventory"
+              type="number"
+              value={form.inventory}
+              onChange={(e) => setForm({ ...form, inventory: e.target.value })}
+            />
+            <TextField
+              label="Description"
+              multiline
+              rows={4}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              sx={{ gridColumn: { sm: "1 / -1" } }}
+            />
+            <Box sx={{ gridColumn: { sm: "1 / -1" }, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+              >
+                {editItem ? "Replace Image" : "Upload Image"}
+                <input
+                  hidden
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
                 />
-              ))}
-        </div>
-
-      </div>
+              </Button>
+              {form.image && <span style={{ color: "#555" }}>{form.image.name}</span>}
+              {errors.image && <span style={{ color: "#d32f2f" }}>{errors.image}</span>}
+              <FormControlLabel
+                sx={{ ml: "auto" }}
+                control={
+                  <Switch
+                    checked={form.status === 1}
+                    onChange={(e) => setForm({ ...form, status: e.target.checked ? 1 : 0 })}
+                    color="success"
+                  />
+                }
+                label={form.status === 1 ? "Active" : "Inactive"}
+              />
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={closeModal}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={editItem ? handleUpdate : handleAdd}
+            disabled={saving}
+          >
+            {saving ? "Saving…" : editItem ? "Update" : "Save"}
+          </Button>
+        </DialogActions>
+      </ResponsiveDialog>
     </Layout>
   );
-};
-
-export default Product;
+}

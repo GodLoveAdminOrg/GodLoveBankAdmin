@@ -1,187 +1,114 @@
-import { useState, useEffect } from "react";
-import Layout from "../../Components/Layout";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  Chip,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
+import ResponsiveDialog from "../../components/common/ResponsiveDialog";
+import Layout from "../../components/layout/Layout";
+import DataTable from "../../components/common/DataTable";
+import PageHeader from "../../components/common/PageHeader";
 import { getAdminSubscriptions } from "../../Services/subscriptionApi";
 
+export default function SubscriptionPage() {
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState(null);
 
-const SubscriptionTable = () => {
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [subscriptions, setSubscriptions] = useState([]);
+  const fetchSubscriptions = async () => {
+    setLoading(true);
+    try {
+      const res = await getAdminSubscriptions(1, 1000);
+      setSubscriptions(res.data?.data?.subscriptions || []);
+    } catch (err) {
+      console.error("Error fetching subscriptions", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+  useEffect(() => {
+    fetchSubscriptions();
+  }, []);
 
-    const fetchSubscriptions = async (currentPage = 1) => {
-        try {
-            const res = await getAdminSubscriptions(currentPage);
-            setSubscriptions(res.data.data.subscriptions); // 👈 IMPORTANT
-            setTotalPages(res.data.data.totalPages); // 👈 set total pages from API response
-        } catch (err) {
-            console.error("Error fetching subscriptions", err);
-        }
-    };
+  const rows = useMemo(
+    () =>
+      subscriptions.map((s) => ({
+        ...s,
+        name: `${s.user?.firstName || ""} ${s.user?.lastName || ""}`.trim(),
+        email: s.user?.email,
+        plan: s.subscriptionPlan?.name,
+        price: s.subscriptionPlan?.price,
+        trialDays: s.subscriptionPlan?.freeTrialDays,
+      })),
+    [subscriptions]
+  );
 
-    useEffect(() => {
-        fetchSubscriptions(page);
-    }, [page]);
+  const columns = [
+    { field: "name", headerName: "Name", flex: 1.2, minWidth: 160 },
+    { field: "email", headerName: "Email", flex: 1.4, minWidth: 200 },
+    { field: "plan", headerName: "Plan", flex: 1, minWidth: 120 },
+    { field: "price", headerName: "Price", width: 100, renderCell: (p) => `$${p.value ?? 0}` },
+    { field: "trialDays", headerName: "Trial Days", width: 110 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 120,
+      renderCell: (p) => (
+        <Chip
+          label={p.value === 1 ? "Active" : "Inactive"}
+          size="small"
+          color={p.value === 1 ? "success" : "default"}
+          variant={p.value === 1 ? "filled" : "outlined"}
+        />
+      ),
+    },
+  ];
 
-    const getStatusLabel = (status) =>
-        status === 1 ? "Active" : "Inactive";
+  const detail = (label, value) => (
+    <Box sx={{ mb: 1.5 }}>
+      <Typography variant="caption" color="text.secondary">{label}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600 }}>{value ?? "-"}</Typography>
+    </Box>
+  );
 
-    return (
-        <Layout>
-            <div className="container-fluid py-3 px-4">
-                <h2 className="mb-3">Subscriptions</h2>
+  return (
+    <Layout>
+      <PageHeader title="Subscriptions" subtitle="Active and past user subscriptions" />
+      <DataTable
+        rows={rows}
+        columns={columns}
+        loading={loading}
+        searchPlaceholder="Search subscriptions…"
+        onRowClick={(params) => setSelected(params.row)}
+      />
 
-                {/* TABLE */}
-                <table className="table table-bordered align-middle">
-                    <thead className="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Plan</th>
-                            <th>Price</th>
-                            <th>Trial Days</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {subscriptions.map((sub) => (
-                            <tr
-                                key={sub.id}
-                                style={{ cursor: "pointer" }}
-                                onClick={() => setSelectedUser(sub)}
-                            >
-                                <td>
-                                    {/* <img
-                  src={`https://god-love-api.deployment.cc/${sub.user.image}`}
-                  width="40"
-                  rounded
-            /> */}
-                                    {sub.user.firstName} {sub.user.lastName}</td>
-                                <td>{sub.user.email}</td>
-                                <td>{sub.subscriptionPlan.name}</td>
-                                <td>{sub.subscriptionPlan.price}</td>
-                                <td>{sub.subscriptionPlan.freeTrialDays}</td>
-
-                                <td>
-                                    <span
-                                        className={`badge ${sub.status === 1 ? "bg-success" : "bg-secondary"
-                                            }`}
-                                    >
-                                        {getStatusLabel(sub.status)}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {/* PAGINATION */}
-                <div className="d-flex justify-content-end mt-3">
-                    <button
-                        className="btn me-2"
-                        style={{
-                            borderColor: "#631D15",
-                            color: "#631D15"
-                        }}
-                        disabled={page === 1}
-                        onClick={() => setPage(page - 1)}
-                    >
-                        Prev
-                    </button>
-
-                    <span className="align-self-center">
-                        Page {page} of {totalPages}
-                    </span>
-
-                    <button
-                        className="btn ms-2"
-                        style={{
-                            borderColor: "#631D15",
-                            color: "#631D15"
-                        }}
-                        disabled={page === totalPages}
-                        onClick={() => setPage(page + 1)}
-                    >
-                        Next
-                    </button>
-                </div>
-
-
-                {/* MODAL */}
-                {selectedUser && (
-                    <>
-                        <div className="modal fade show d-block">
-                            <div className="modal-dialog modal-dialog-centered">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5 className="modal-title">Subscription Details</h5>
-                                        <button
-                                            className="btn-close"
-                                            onClick={() => setSelectedUser(null)}
-                                        ></button>
-                                    </div>
-
-                                    <div className="modal-body">
-                                        <p>
-                                            <strong>Name:</strong>{" "} {selectedUser.user.firstName} {" "}
-                                            {selectedUser.user.lastName}
-                                        </p>
-                                        <p>
-                                            <strong>Email:</strong>{" "}
-                                            {selectedUser.user.email}
-                                        </p>
-                                        <p>
-                                            <strong>Plan:</strong> {" "}
-                                            {selectedUser.subscriptionPlan.name}
-                                        </p>
-                                        <p>
-                                            <strong>Price:</strong> {" "}
-                                            {selectedUser.subscriptionPlan.price}
-                                        </p>
-                                        <p>
-                                            <strong>Free Trial:</strong> {" "}
-                                            {selectedUser.subscriptionPlan.freeTrialDays}days
-                                        </p>
-                                        <p>
-                                            <strong>Status:</strong>{" "}
-                                            <span
-                                                className={`badge ${selectedUser.status === 1
-                                                    ? "bg-success"
-                                                    : "bg-secondary"
-                                                    }`}
-                                            >
-                                                {getStatusLabel(selectedUser.status)}
-                                            </span>
-                                        </p>
-                                        <p>
-                                            <strong>Start Date:</strong> {" "}
-                                            {selectedUser.startDate}
-                                        </p>
-                                        <p><strong>End Date:</strong> {" "}
-                                            {selectedUser.endDate}
-                                        </p>
-                                    </div>
-
-                                    <div className="modal-footer">
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={() => setSelectedUser(null)}
-                                        >
-                                            Close
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="modal-backdrop fade show"></div>
-                    </>
-                )}
-            </div>
-        </Layout>
-    );
-};
-
-export default SubscriptionTable;
+      <ResponsiveDialog open={Boolean(selected)} onClose={() => setSelected(null)} fullWidth maxWidth="sm">
+        {selected && (
+          <>
+            <DialogTitle sx={{ fontWeight: 700 }}>Subscription Details</DialogTitle>
+            <DialogContent dividers>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1 }}>
+                {detail("Name", selected.name)}
+                {detail("Email", selected.email)}
+                {detail("Plan", selected.plan)}
+                {detail("Price", `$${selected.price ?? 0}`)}
+                {detail("Free Trial", `${selected.trialDays ?? 0} days`)}
+                {detail("Status", selected.status === 1 ? "Active" : "Inactive")}
+                {detail("Start Date", selected.startDate)}
+                {detail("End Date", selected.endDate)}
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, py: 2 }}>
+              <Button onClick={() => setSelected(null)}>Close</Button>
+            </DialogActions>
+          </>
+        )}
+      </ResponsiveDialog>
+    </Layout>
+  );
+}

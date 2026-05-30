@@ -1,7 +1,7 @@
 // import "../../App.css";
-// import Layout from "../../Components/Layout";
+// import Layout from "../../components/layout/Layout";
 // import { NavLink } from "react-router-dom";
-// import SelfLoveTable from "../../Components/SelfLoveTable";
+// import SelfLoveTable from "./SelfLoveTable";
 
 // const BaseDescriptionPage = () => {
 //   // const data = [
