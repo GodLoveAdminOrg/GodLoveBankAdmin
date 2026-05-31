@@ -23,4 +23,4 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no \
         ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
-        "cd /home/ubuntu/god-love-fe && ./deploy.sh"
+        "cd /home/ubuntu/god-love-fe && bash deploy.sh"
