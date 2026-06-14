@@ -15,6 +15,8 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 import ResponsiveDialog from "../../components/common/ResponsiveDialog";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -293,12 +295,17 @@ export default function Product() {
               pt: 1,
             }}
           >
-            <TextField
+            <DatePicker
               label="Publish Date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={form.publishedDate}
-              onChange={(e) => setForm({ ...form, publishedDate: e.target.value })}
+              format="MM/DD/YYYY"
+              value={form.publishedDate ? dayjs(form.publishedDate) : null}
+              onChange={(newValue) =>
+                setForm({
+                  ...form,
+                  publishedDate: newValue && newValue.isValid() ? newValue.format("YYYY-MM-DD") : "",
+                })
+              }
+              slotProps={{ textField: { fullWidth: true } }}
             />
             <TextField
               label="Product Name"

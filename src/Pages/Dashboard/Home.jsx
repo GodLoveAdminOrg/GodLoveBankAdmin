@@ -17,7 +17,6 @@ import ResponsiveDialog from "../../components/common/ResponsiveDialog";
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import PeopleIcon from "@mui/icons-material/People";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
-import PersonOffIcon from "@mui/icons-material/PersonOff";
 import { toast } from "react-toastify";
 
 import Layout from "../../components/layout/Layout";
@@ -159,14 +158,13 @@ export default function Users() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
           gap: 3,
           mb: 3,
         }}
       >
         <StatCard label="Total Users" value={stats.total} icon={<PeopleIcon />} color="primary.main" />
         <StatCard label="Active Users" value={stats.active} icon={<HowToRegIcon />} color="success.main" />
-        <StatCard label="Non-Active Users" value={stats.inactive} icon={<PersonOffIcon />} color="#9e9e9e" />
       </Box>
 
       <DataTable
